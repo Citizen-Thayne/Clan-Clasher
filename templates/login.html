@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block body %}
+<form action="{% url 'login' %}" method="post">
+    {% csrf_token %}
+    {{ login_form.as_table }}
+{#    {{ login_form.email }}#}
+{#    {{ login_form.email.errors }}#}
+{#    {{ login_form.password }}#}
+{#    {{ login_form.password.errors}}#}
+    <input type="submit" value="Submit"/>
+</form>
+{% endblock %}
