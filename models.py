@@ -1,4 +1,5 @@
-from django.contrib.auth.models import User, AbstractBaseUser, AbstractUser, BaseUserManager
+from django.contrib.auth.models import  AbstractBaseUser, AbstractUser, BaseUserManager
+from django.contrib.auth import get_user_model
 from django.db import models
 
 
@@ -55,6 +56,8 @@ class MyUser(AbstractBaseUser):
         unique=True,
     )
 
+    class Meta:
+        verbose_name = 'user'
     objects = MyUserManager()
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
