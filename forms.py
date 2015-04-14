@@ -7,13 +7,6 @@ from ClanClasher.models import Chief
 
 class ChiefForm(forms.ModelForm):
     name = forms.CharField(label='Chief Name', max_length=32, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    level = forms.TypedChoiceField(
-    #     widget=forms.Select(
-    #         # choices=((x, x) for x in range(3, 11)),
-    #         # choices=((1,1), (2,2)),
-    #         # attrs={'class', 'form-control'}
-        )
-    # )
 
     class Meta:
         model = Chief
@@ -28,10 +21,6 @@ class MyUserCreationForm(UserCreationForm):
     class Meta:
         model = get_user_model()
         fields = ("email",)
-
-    def __init__(self, *args, **kwargs):
-        super(MyUserCreationForm, self).__init__(*args, **kwargs)
-        del self.fields['username']
 
     def save(self, commit=True):
         # Ensure that the username is set to the email address provided,
