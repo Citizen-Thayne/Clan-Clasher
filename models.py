@@ -1,16 +1,23 @@
 from django.contrib.auth.models import  AbstractBaseUser, AbstractUser, BaseUserManager
 from django.contrib.auth import get_user_model
+from django.core.urlresolvers import reverse
 from django.db import models
 
 
 class Clan(models.Model):
     name = models.CharField(max_length=32)
 
+    def get_absolute_url(self):
+        return reverse('clan_detail', kwargs={'pk': self.pkxe4 })
+
 
 class Chief(models.Model):
     name = models.CharField(max_length=32)
-    level = models.IntegerField(choices=((x, x) for x in range(3, 11)))
+    level = models.CharField(max_length=2, choices=((x, x) for x in range(3, 11)))
     clan = models.ForeignKey(Clan, null=True)
+
+    def get_absolute_url(self):
+        return reverse('chief_detail',kwargs={'pk':self.pk})
 
 
 class MyUserManager(BaseUserManager):

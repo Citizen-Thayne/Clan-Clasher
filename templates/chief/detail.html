@@ -1,13 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head lang="en">
-    <meta charset="UTF-8">
-    <title></title>
-</head>
-<body>
-<h2>Chief Detail</h2>
+{% extends 'base.html' %}
+
+{% block body %}
+
 {{ chief.name }}
 {{ chief.level }}
 {{ chief.clan.name }}
-</body>
-</html>
+
+{% endblock body %}

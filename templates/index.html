@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 
 {% block body %}
-    {% if request.user %}
-        <h2>Welcome {{ request.user }}</h2>
+    {% if user %}
+        <h2>Welcome {{ user.profile.chief.name }}</h2>
     {% else %}
         <h2>Not Logged in</h2>
     {% endif %}

@@ -1,5 +1,7 @@
+{% load staticfiles %}
 <!DOCTYPE html>
 <html>
+<link rel="stylesheet" type="text/css" href="{% static 'ClanClasher/style.css' %}"/>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 <head lang="en">
     <meta charset="UTF-8">
@@ -36,19 +38,19 @@
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Chief
                         <span class="caret"></span></a>
                     <ul class="dropdown-menu" role="menu">
-{#                        <li><a href="{% url 'chief create' %}">New</a></li>#}
-{#                        <li><a href="{% url 'chief index' %}">List</a></li>#}
+                        {#                        <li><a href="{% url 'chief create' %}">New</a></li>#}
+                        <li><a href="{% url 'chief_list' %}">List</a></li>
                     </ul>
                 </li>
             </ul>
             <div class="navbar-right">
-                {% if request.user %}
-                    <p class="navbar-text">Signed in as <a href="{% url "chief_detail" request.session.chief %}"
-                                                           class="navbar-link">request.user.profile.chief.name</a></p>
+                {% if user.is_authenticated %}
+                    <p class="navbar-text">Signed in as <a href="{% url "chief_detail" pk=user.profile.chief.id %}"
+                                                           class="navbar-link">{{ user.profile.chief.name }}</a></p>
 
                 {% else %}
                     <form class="navbar-form" role="form" action={% url 'login' %} method="post">
-{#                    <form class="navbar-form" role="form"  method="post">#}
+                        {#                    <form class="navbar-form" role="form"  method="post">#}
                         {% csrf_token %}
                         <div class="form-group">
                             <input type="text" placeholder="Email" name='email' class="form-control">
@@ -70,50 +72,23 @@
 </nav>
 
 {% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-    <li{% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
-    {% endfor %}
-</ul>
+    <ul class="messages">
+        {% for message in messages %}
+            <li{% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
 {% endif %}
 
-{#{% for danger in dangers %}#}
-{#    <div class="alert alert-danger" role="alert">{{ danger }}</div>#}
-{#{% endfor %}#}
-{#{% for success in successes %}#}
-{#    <div class="alert alert-success" role="alert">{{ success }}</div>#}
-{#{% endfor %}#}
-{#{% for warning in warnings %}#}
-{#    <div class="alert alert-warning" role="alert">{{ warning }}</div>#}
-{#{% endfor %}#}
-{#{% for info in infos %}#}
-{#    <div class="alert alert-info" role="alert">{{ info }}</div>#}
-{#{% endfor %}#}
-
-{#{% if danger %}#}
-{#    <div class="alert alert-danger" role="alert">{{ danger }}</div>#}
-{#{% endif %}#}
-{#{% if success %}#}
-{#    <div class="alert alert-success" role="alert">{{ success }}</div>#}
-{#{% endif %}#}
-{#{% if warning %}#}
-{#    <div class="alert alert-warning" role="alert">{{ warning }}</div>#}
-{#{% endif %}#}
-{#{% if danger %}#}
-{#    <div class="alert alert-danger" role="alert">{{ danger }}</div>#}
-{#{% endif %}#}
-{##}
-{#<div class="alert alert-success" role="alert">...</div>#}
-{#<div class="alert alert-info" role="alert">...</div>#}
-{#<div class="alert alert-warning" role="alert">...</div>#}
-{#<div class="alert alert-danger" role="alert">...</div>#}
-
-
+{#<div class="body">#}
+{#    {% block body %}#}
+{#    {% endblock %}#}
+{#</div>#}
 <div class="container">
-{#    <div class="col-md-offset-2 col-md-8 ">#}
-    <div >
-        {% block body %}
-        {% endblock %}
+    <div class="row">
+        <div class=".col-md-8 .col-md-offset-4">
+            {% block body %}
+            {% endblock %}
+        </div>
     </div>
 </div>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">

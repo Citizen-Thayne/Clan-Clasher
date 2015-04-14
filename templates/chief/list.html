@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<table class="table table-striped">
+<tr><th>Chief</th><th>Level</th><th>Clan</th></tr>
+{% for chief in object_list %}
+    <tr>
+        <td><a href="{% url 'chief_detail' pk=chief.id %}">{{ chief.name }}</a> </td>
+    <td>{{ chief.level }}</td>
+    <td>
+        {% if chief.clan %}
+            <a href="{% url 'clan_detail' pk=chief.clan %}">{{chief.clan.name}}</a>
+        {% else %}
+            -
+        {% endif %}
+    </td>
+    </tr>
+{% endfor %}
+</table>
+
+
+{% endblock body %}
