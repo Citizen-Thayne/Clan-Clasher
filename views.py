@@ -20,7 +20,6 @@ def register(request):
             new_user = user_form.save()
             new_chief = chief_form.save()
             new_profile = Profile(chief=new_chief, user=new_user).save()
-            # Profile.objects.create(chief=new_chief, user=new_user)
             return render(request, 'index.html')
     else:
         user_form = MyUserCreationForm()
@@ -47,7 +46,6 @@ def logout_view(request):
 
 
 def index(request):
-    print request.user
     return render(request, 'index.html')
 
 
