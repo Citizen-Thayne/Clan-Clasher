@@ -13,7 +13,7 @@ class Clan(models.Model):
 
 class Chief(models.Model):
     name = models.CharField(max_length=32)
-    level = models.CharField(max_length=2, choices=((x, x) for x in range(3, 11)))
+    level = models.IntegerField( choices=((x, x) for x in range(3, 11)))
     clan = models.ForeignKey(Clan, null=True)
 
     def get_absolute_url(self):
