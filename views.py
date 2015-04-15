@@ -1,4 +1,5 @@
 from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
@@ -24,7 +25,7 @@ def register(request):
     else:
         user_form = MyUserCreationForm()
         chief_form = ChiefForm
-    return render(request, 'register.html', {'user_form': user_form, 'chief_form': chief_form})
+    return render(request, 'registration/register.html', {'user_form': user_form, 'chief_form': chief_form})
 
 
 def login(request):
@@ -36,7 +37,7 @@ def login(request):
             return render(request, 'index.html')
     else:
         login_form = MyUserAuthenticationForm()
-    return render(request, 'login.html', {'login_form': login_form})
+    return render(request, 'registration/login.html', {'login_form': login_form})
 
 
 def logout_view(request):
@@ -44,7 +45,7 @@ def logout_view(request):
     messages.success(request, 'Logged Out')
     return render(request, 'index.html', )
 
-
+@login_required
 def index(request):
     return render(request, 'index.html')
 
