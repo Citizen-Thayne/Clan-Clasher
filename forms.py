@@ -23,11 +23,12 @@ class MyUserCreationForm(UserCreationForm):
         fields = ("email",)
 
     def save(self, commit=True):
-        # Ensure that the username is set to the email address provided,
-        # so the user_save_patch() will keep things in sync.
         self.instance.username = self.instance.email
         return super(MyUserCreationForm, self).save(commit=commit)
 
+    def __init__(self, *args, **kwargs):
+        super(MyUserCreationForm, self).__init__(*args, **kwargs)
+        del self.fields['username']
 
 class MyUserAuthenticationForm(AuthenticationForm):
     pass
