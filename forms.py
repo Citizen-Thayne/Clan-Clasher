@@ -7,6 +7,10 @@ from ClanClasher.models import Chief
 
 class ChiefForm(forms.ModelForm):
     name = forms.CharField(label='Chief Name', max_length=32, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    level = forms.ChoiceField(
+        choices=((x, x) for x in range(3, 11)),
+        widget=forms.Select(attrs={'class': 'form-control col-md-2'})
+    )
 
     class Meta:
         model = Chief
@@ -29,6 +33,7 @@ class MyUserCreationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super(MyUserCreationForm, self).__init__(*args, **kwargs)
         del self.fields['username']
+
 
 class MyUserAuthenticationForm(AuthenticationForm):
     pass
