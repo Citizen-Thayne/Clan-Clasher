@@ -38,9 +38,3 @@ class MyUserCreationForm(UserCreationForm):
 
 class MyUserAuthenticationForm(AuthenticationForm):
     pass
-    # class Meta:
-    # model = get_user_model()
-
-
-
-
