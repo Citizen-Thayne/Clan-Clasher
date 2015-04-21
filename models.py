@@ -22,6 +22,7 @@ class Chief(models.Model):
     name = models.CharField(max_length=32)
     level = models.IntegerField( choices=((x, x) for x in range(3, 11)))
     clan = models.ForeignKey(Clan, null=True)
+    # war_rank = models.SmallIntegerField(choices=((x,x)) for x in range(3,50)
 
     def get_absolute_url(self):
         return reverse('chief_detail',kwargs={'pk':self.pk})
@@ -58,14 +59,10 @@ class Chief(models.Model):
 
     def __str__(self):
         return self.name
-        
+
 
 class MyUserManager(BaseUserManager):
     def create_user(self, email, password=None):
-        """
-        Creates and saves a User with the given email, date of
-        birth and password.
-        """
         if not email:
             raise ValueError('Users must have an email address')
 
@@ -78,10 +75,6 @@ class MyUserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email,  password):
-        """
-        Creates and saves a superuser with the given email, date of
-        birth and password.
-        """
         user = self.create_user(email,
                                 password=password,
         )
@@ -116,11 +109,3 @@ class MyUser(AbstractBaseUser):
 class Profile(models.Model):
     chief = models.ForeignKey(Chief)
     user = models.OneToOneField(MyUser, related_name='profile')
-
-
-# def create_profile(sender, instance, created, **kwargs):
-# if created:
-# Profile.objects.create(user=instance)
-#
-# post_save.connect(create_profile, sender=User)
-

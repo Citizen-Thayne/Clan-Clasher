@@ -1,7 +1,7 @@
 from django.test import TestCase
 from ClanClasher.models import *
 
-class ClanTestCase(TestCase):
+class ChiefTestCase(TestCase):
     def setUp(self):
         self.leader = Chief.objects.create(name='Test Leader', level=10)
         self.clan = Clan.objects.create(name="Test Clan", leader=self.leader)
@@ -55,3 +55,22 @@ class ClanTestCase(TestCase):
     def test_disbandClan_when_not_member_raises_exception(self):
         with self.assertRaises(ValueError):
             self.loner.disbandClan()
+
+class ClanTestCase(TestCase):
+    def setUp(self):
+        self.leader = Chief.objects.create(name='Chief Leader', level=10)
+        self.leader.startClan(name='Test Clan')
+        self.leader.save()
+        self.clan = self.leader.clan
+
+        Chief.objects.bulk_create([
+            Chief(name='Chief 1', level=6, clan=self.clan),
+            Chief(name='Chief 2', level=6, clan=self.clan),
+            Chief(name='Chief 3', level=6, clan=self.clan),
+            Chief(name='Chief 4', level=6, clan=self.clan),
+            Chief(name='Chief 5', level=6, clan=self.clan),
+            ])
+    def test_getRoster_returns_complete_clan_roster(self):
+        roster = self.clan.getRoster()
+        self.assertEqual(len(roster), 6)
+        self.assertIn(self.leader, roster)
