@@ -1,15 +1,32 @@
-from django.contrib.auth.models import  AbstractBaseUser, AbstractUser, BaseUserManager
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractBaseUser, AbstractUser, BaseUserManager
 from django.core.urlresolvers import reverse
 from django.db import models
 
 
+class ClanManager(models.Manager):
+    def create_clan(self, name, leader=None, members=None):
+        if name is None:
+            raise ValueError
+        if leader is None and members is not None:
+            raise Exception('Cannot create a clan with members but no leader.')
+        clan = Clan(name=name, leader=leader)
+        clan.save()
+        if leader:
+            leader.clan = clan
+            leader.save()
+        if members is not None:
+            for member in members:
+                member.join_clan(clan)
+                member.save()
+        return clan
+
+
 class Clan(models.Model):
     name = models.CharField(max_length=32)
-    leader = models.ForeignKey('Chief', related_name='leader')
+    leader = models.ForeignKey('Chief', related_name='leader', null=True)
 
     def get_absolute_url(self):
-        return reverse('clan_detail', kwargs={'pk': self.pk })
+        return reverse('clan_detail', kwargs={'pk': self.pk})
 
     def getRoster(self):
         return list(Chief.objects.filter(clan=self.id))
@@ -17,23 +34,24 @@ class Clan(models.Model):
     def __str__(self):
         return self.name
 
+    objects = ClanManager()
+
 
 class Chief(models.Model):
     name = models.CharField(max_length=32)
-    level = models.IntegerField( choices=((x, x) for x in range(3, 11)))
+    level = models.IntegerField(choices=((x, x) for x in range(3, 11)))
     clan = models.ForeignKey(Clan, null=True)
-    # war_rank = models.SmallIntegerField(choices=((x,x)) for x in range(3,50)
 
     def get_absolute_url(self):
-        return reverse('chief_detail',kwargs={'pk':self.pk})
+        return reverse('chief_detail', kwargs={'pk': self.pk})
 
-    def startClan(self, name):
+    def start_clan(self, name):
         if self.clan is not None:
             raise ValueError("Cannot start Clan while a member of a clan")
         clan = Clan.objects.create(name=name, leader=self)
         self.clan = clan
 
-    def disbandClan(self):
+    def disband_clan(self):
         if self.clan is None:
             raise ValueError("Must be in clan and leader to disband clan")
         if self.clan.leader is not self:
@@ -46,19 +64,35 @@ class Chief(models.Model):
         self.clan = None
         self.save()
 
-
-    def joinClan(self,clan):
+    def join_clan(self, clan):
         if clan is None:
             raise ValueError("Clan cannot be none")
         self.clan = clan
 
-    def leaveClan(self):
+    def leave_clan(self):
         if self.clan is None:
             raise ValueError("Cannot leave clan when not in a clan")
         self.clan = None
 
     def __str__(self):
         return self.name
+
+
+class War(models.Model):
+    owner = models.ForeignKey(Clan, related_name='owner')
+    opponent = models.ForeignKey(Clan, related_name='opponent')
+    finish_time = models.DateTimeField()
+
+
+class WarRank(models.Model):
+    chief = models.ForeignKey(Chief)
+    war = models.ForeignKey(War)
+    rank = models.SmallIntegerField()
+
+
+class WarAttack(models.Model):
+    attacker_war_rank = models.ForeignKey(WarRank, related_name='attacker')
+    defender_war_rank = models.ForeignKey(WarRank, related_name='defender')
 
 
 class MyUserManager(BaseUserManager):
@@ -74,7 +108,7 @@ class MyUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email,  password):
+    def create_superuser(self, email, password):
         user = self.create_user(email,
                                 password=password,
         )
@@ -98,6 +132,7 @@ class MyUser(AbstractBaseUser):
 
     class Meta:
         verbose_name = 'user'
+
     objects = MyUserManager()
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
