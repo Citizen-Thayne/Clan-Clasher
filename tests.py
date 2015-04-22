@@ -83,14 +83,14 @@ class ClanTestCase(TestCase):
         clan = Clan.objects.create_clan(name='Empty Clan')
         self.assertIsNotNone(clan)
         self.assertIsNone(clan.leader)
-        self.assertEqual(len(clan.getRoster()),0)
+        self.assertEqual(len(clan.getRoster()), 0)
 
     def test_create_clan_with_leader_and_no_members_creates_clan(self):
         leader = Chief.objects.create(name='Leader', level=10)
         clan = Clan.objects.create_clan(name='Leaders Only', leader=leader)
         self.assertIsNotNone(clan)
         self.assertIsNotNone(clan.leader)
-        self.assertEqual(len(clan.getRoster()),1)
+        self.assertEqual(len(clan.getRoster()), 1)
 
     def test_create_clan_with_leader_and_members_creates_clan(self):
         leader = Chief.objects.create(name='Leader', level=10)
@@ -105,14 +105,14 @@ class ClanTestCase(TestCase):
         clan = Clan.objects.create_clan(name='Full Party', leader=leader, members=members)
         self.assertIsNotNone(clan)
         self.assertIsNotNone(clan.leader)
-        self.assertEqual(len(clan.getRoster()),6)
+        self.assertEqual(len(clan.getRoster()), 6)
 
 
 class WarTestCase(TestCase):
     def setUp(self):
-        #Attacking Clan
-        members = [
-            Chief(name='Attacker Leader', level=10),
+        # Attacking Clan
+        self.attack_leader = Chief(name='Attacker Leader', level=10)
+        self.attack_members = [
             Chief(name='Attacker 1', level=8),
             Chief(name='Attacker 2', level=8),
             Chief(name='Attacker 3', level=8),
@@ -120,3 +120,12 @@ class WarTestCase(TestCase):
             Chief(name='Attacker 5', level=8),
             Chief(name='Attacker 6', level=8),
         ]
+        self.attack_clan = Clan.objects.create_clan(name="Attack", leader=self.attack_leader, members=self.attack_members)
+
+    def test_start_war(self):
+        self.attack_leader.start_war('Defending Clan')
+
+
+
+
+

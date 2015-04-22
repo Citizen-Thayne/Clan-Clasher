@@ -74,6 +74,10 @@ class Chief(models.Model):
             raise ValueError("Cannot leave clan when not in a clan")
         self.clan = None
 
+    def start_war(self, enemy_clan_name):
+        pass
+
+
     def __str__(self):
         return self.name
 
