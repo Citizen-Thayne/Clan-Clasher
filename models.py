@@ -3,7 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db import models
 from datetime import datetime
-
+from django.utils import timezone
 
 class ClanManager(models.Manager):
     def create_clan(self, name, leader=None, members=None):
@@ -37,7 +37,7 @@ class Clan(models.Model):
         return self.name
 
     def start_war(self, opponent_name, finish_time):
-        if finish_time < datetime.now():
+        if finish_time < timezone.now():
             raise Exception("Finish time must not be sooner than current time")
         if self.is_in_war():
             raise Exception("Cannot start a war while currently in one")
@@ -55,7 +55,16 @@ class Clan(models.Model):
             return War.objects.get(owner=self, finish_time__gte=datetime.now())
         except ObjectDoesNotExist:
             return None
+
     objects = ClanManager()
+
+    def get_current_opponent(self):
+        current_war = self.get_current_war()
+        if current_war is not None:
+            return current_war.opponent
+        else:
+            return None
+
 
 
 class Chief(models.Model):

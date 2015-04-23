@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from django.test import TestCase
+from django.utils import timezone
 
 from ClanClasher.models import *
 
@@ -113,7 +114,7 @@ class ClanTestCase(TestCase):
 class WarTestCase(TestCase):
     def setUp(self):
         # Attacking Clan
-        self.attack_leader = Chief(name='Attacker Leader', level=10)
+        self.attack_leader = Chief.objects.create(name='Attacker Leader', level=10)
         self.attack_members = [
             Chief(name='Attacker 1', level=8),
             Chief(name='Attacker 2', level=8),
@@ -126,9 +127,17 @@ class WarTestCase(TestCase):
                                                     members=self.attack_members)
 
     def test_start_war(self):
-        self.current_war = self.attack_clan.start_war('Defending Clan', datetime.now() + timedelta(days=1))
-        # self.current_war = self.attack_clan.get_current_war()
+        self.current_war = self.attack_clan.start_war('Defending Clan', timezone.now() + timedelta(days=1))
         self.assertIsNotNone(self.current_war)
+
+    def test_current_war_returns_war_when_there_is_a_current_war(self):
+        self.current_war = self.attack_clan.start_war('Defending Clan', timezone.now() + timedelta(days=1))
+        self.assertEqual(self.current_war, self.attack_clan.get_current_war())
+
+    def test_current_war_returns_None_when_there_is_no_current_war(self):
+        peaceful_clan = Clan.objects.create(name="Peaceful")
+        self.assertIsNone(peaceful_clan.get_current_war())
+
 
 
 
