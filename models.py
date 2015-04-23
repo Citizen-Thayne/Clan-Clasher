@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractBaseUser, AbstractUser, BaseUserManager
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db import models
+from datetime import datetime
 
 
 class ClanManager(models.Manager):
@@ -34,6 +36,25 @@ class Clan(models.Model):
     def __str__(self):
         return self.name
 
+    def start_war(self, opponent_name, finish_time):
+        if finish_time < datetime.now():
+            raise Exception("Finish time must not be sooner than current time")
+        if self.is_in_war():
+            raise Exception("Cannot start a war while currently in one")
+        opponent = Clan.objects.create_clan(name=opponent_name)
+        return War.objects.create(owner=self, opponent=opponent, finish_time=finish_time)
+
+    def is_in_war(self):
+        if self.get_current_war() is None:
+            return False
+        else:
+            return True
+
+    def get_current_war(self):
+        try:
+            return War.objects.get(owner=self, finish_time__gte=datetime.now())
+        except ObjectDoesNotExist:
+            return None
     objects = ClanManager()
 
 
@@ -73,10 +94,6 @@ class Chief(models.Model):
         if self.clan is None:
             raise ValueError("Cannot leave clan when not in a clan")
         self.clan = None
-
-    def start_war(self, enemy_clan_name):
-        pass
-
 
     def __str__(self):
         return self.name

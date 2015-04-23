@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from django.test import TestCase
 
 from ClanClasher.models import *
@@ -120,11 +122,13 @@ class WarTestCase(TestCase):
             Chief(name='Attacker 5', level=8),
             Chief(name='Attacker 6', level=8),
         ]
-        self.attack_clan = Clan.objects.create_clan(name="Attack", leader=self.attack_leader, members=self.attack_members)
+        self.attack_clan = Clan.objects.create_clan(name="Attack", leader=self.attack_leader,
+                                                    members=self.attack_members)
 
     def test_start_war(self):
-        self.attack_leader.start_war('Defending Clan')
-
+        self.current_war = self.attack_clan.start_war('Defending Clan', datetime.now() + timedelta(days=1))
+        # self.current_war = self.attack_clan.get_current_war()
+        self.assertIsNotNone(self.current_war)
 
 
 
