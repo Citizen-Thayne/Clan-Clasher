@@ -113,7 +113,9 @@ class War(models.Model):
     opponent = models.ForeignKey(Clan, related_name='opponent')
     finish_time = models.DateTimeField()
 
-
+class WarRankManager(models.Manager):
+    def get_war_roster(clan, war):
+        return WarRank.objects.get(chief.clan=clan, war=war)
 class WarRank(models.Model):
     chief = models.ForeignKey(Chief)
     war = models.ForeignKey(War)
