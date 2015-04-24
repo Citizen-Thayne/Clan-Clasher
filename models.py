@@ -1,9 +1,11 @@
+from datetime import datetime, timedelta
+
 from django.contrib.auth.models import AbstractBaseUser, AbstractUser, BaseUserManager
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db import models
-from datetime import datetime
 from django.utils import timezone
+
 
 class ClanManager(models.Manager):
     def create_clan(self, name, leader=None, members=None):
@@ -30,19 +32,19 @@ class Clan(models.Model):
     def get_absolute_url(self):
         return reverse('clan_detail', kwargs={'pk': self.pk})
 
-    def getRoster(self):
+    def get_roster(self):
         return list(Chief.objects.filter(clan=self.id))
 
     def __str__(self):
         return self.name
 
-    def start_war(self, opponent_name, finish_time):
-        if finish_time < timezone.now():
-            raise Exception("Finish time must not be sooner than current time")
+    def start_war(self, opponent_name, start_time):
+        if start_time < timezone.now() - timedelta(days=1):
+            raise Exception("Start time must be more than a day ago")
         if self.is_in_war():
             raise Exception("Cannot start a war while currently in one")
         opponent = Clan.objects.create_clan(name=opponent_name)
-        return War.objects.create(owner=self, opponent=opponent, finish_time=finish_time)
+        return War.objects.create(owner=self, opponent=opponent, start_time=start_time)
 
     def is_in_war(self):
         if self.get_current_war() is None:
@@ -52,7 +54,7 @@ class Clan(models.Model):
 
     def get_current_war(self):
         try:
-            return War.objects.get(owner=self, finish_time__gte=datetime.now())
+            return War.objects.get(owner=self, start_time__gt=datetime.now() - timedelta(days=1))
         except ObjectDoesNotExist:
             return None
 
@@ -64,7 +66,7 @@ class Clan(models.Model):
             return current_war.opponent
         else:
             return None
-
+    def validate_members(self, chiefs):
 
 
 class Chief(models.Model):
@@ -86,7 +88,7 @@ class Chief(models.Model):
             raise ValueError("Must be in clan and leader to disband clan")
         if self.clan.leader is not self:
             raise ValueError("Must be leader of clan to disband it")
-        members = self.clan.getRoster()
+        members = self.clan.get_roster()
         for member in members:
             member.clan = None
             member.save()
@@ -111,15 +113,19 @@ class Chief(models.Model):
 class War(models.Model):
     owner = models.ForeignKey(Clan, related_name='owner')
     opponent = models.ForeignKey(Clan, related_name='opponent')
-    finish_time = models.DateTimeField()
+    start_time = models.DateTimeField()
+
 
 class WarRankManager(models.Manager):
-    def get_war_roster(clan, war):
-        return WarRank.objects.get(chief.clan=clan, war=war)
+    def get_war_roster(self, clan, war):
+        return WarRank.objects.get(chief__clan=clan, war=war)
+
+
 class WarRank(models.Model):
     chief = models.ForeignKey(Chief)
     war = models.ForeignKey(War)
     rank = models.SmallIntegerField()
+    objects = WarRankManager()
 
 
 class WarAttack(models.Model):

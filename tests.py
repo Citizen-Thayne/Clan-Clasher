@@ -1,9 +1,15 @@
-from datetime import datetime, timedelta
-
 from django.test import TestCase
-from django.utils import timezone
 
 from ClanClasher.models import *
+
+
+def mock_clan(member_count=50):
+    leader = Chief.objects.create(name='Leader', level=10)
+    members = []
+    for x in range(1, member_count):
+        members.append(Chief.objects.create(name='Chief #{}'.format(x), level=5))
+    clan = Clan.objects.create_clan(name='Mock Clan', leader=leader, members=members)
+    return clan
 
 
 class ChiefTestCase(TestCase):
@@ -78,7 +84,7 @@ class ClanTestCase(TestCase):
         ])
 
     def test_getRoster_returns_complete_clan_roster(self):
-        roster = self.clan.getRoster()
+        roster = self.clan.get_roster()
         self.assertEqual(len(roster), 6)
         self.assertIn(self.leader, roster)
 
@@ -86,14 +92,14 @@ class ClanTestCase(TestCase):
         clan = Clan.objects.create_clan(name='Empty Clan')
         self.assertIsNotNone(clan)
         self.assertIsNone(clan.leader)
-        self.assertEqual(len(clan.getRoster()), 0)
+        self.assertEqual(len(clan.get_roster()), 0)
 
     def test_create_clan_with_leader_and_no_members_creates_clan(self):
         leader = Chief.objects.create(name='Leader', level=10)
         clan = Clan.objects.create_clan(name='Leaders Only', leader=leader)
         self.assertIsNotNone(clan)
         self.assertIsNotNone(clan.leader)
-        self.assertEqual(len(clan.getRoster()), 1)
+        self.assertEqual(len(clan.get_roster()), 1)
 
     def test_create_clan_with_leader_and_members_creates_clan(self):
         leader = Chief.objects.create(name='Leader', level=10)
@@ -108,7 +114,7 @@ class ClanTestCase(TestCase):
         clan = Clan.objects.create_clan(name='Full Party', leader=leader, members=members)
         self.assertIsNotNone(clan)
         self.assertIsNotNone(clan.leader)
-        self.assertEqual(len(clan.getRoster()), 6)
+        self.assertEqual(len(clan.get_roster()), 6)
 
 
 class WarTestCase(TestCase):
@@ -127,11 +133,11 @@ class WarTestCase(TestCase):
                                                     members=self.attack_members)
 
     def test_start_war(self):
-        self.current_war = self.attack_clan.start_war('Defending Clan', timezone.now() + timedelta(days=1))
+        self.current_war = self.attack_clan.start_war('Defending Clan', timezone.now())
         self.assertIsNotNone(self.current_war)
 
     def test_current_war_returns_war_when_there_is_a_current_war(self):
-        self.current_war = self.attack_clan.start_war('Defending Clan', timezone.now() + timedelta(days=1))
+        self.current_war = self.attack_clan.start_war('Defending Clan', timezone.now())
         self.assertEqual(self.current_war, self.attack_clan.get_current_war())
 
     def test_current_war_returns_None_when_there_is_no_current_war(self):
@@ -139,6 +145,11 @@ class WarTestCase(TestCase):
         self.assertIsNone(peaceful_clan.get_current_war())
 
 
+class WarRankTestCase(TestCase):
+    def setUp(self):
+        self.attack_clan = mock_clan(10)
+        self.war = self.attack_clan.start_war(
+            opponent_name='Opponent',
+            start_time=timezone.now(),
 
-
-
+        )
