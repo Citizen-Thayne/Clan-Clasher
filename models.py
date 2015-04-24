@@ -24,6 +24,16 @@ class ClanManager(models.Manager):
                 member.save()
         return clan
 
+    def organize_by_clan(chiefs):
+        '''
+        Returns a dictionary where key is a clan and value is list of 
+        chiefs that are in chiefs arg and that clan
+        '''
+        clans = {}
+        for chief in chiefs:
+            clans.setdefault(chief.clan,[]).append(chief)
+        return clans
+
 
 class Clan(models.Model):
     name = models.CharField(max_length=32)
@@ -31,9 +41,6 @@ class Clan(models.Model):
 
     def get_absolute_url(self):
         return reverse('clan_detail', kwargs={'pk': self.pk})
-
-    def get_roster(self):
-        return list(Chief.objects.filter(clan=self.id))
 
     def __str__(self):
         return self.name
@@ -66,13 +73,21 @@ class Clan(models.Model):
             return current_war.opponent
         else:
             return None
+
     def validate_members(self, chiefs):
+        '''
+        Takes a list of chiefs and checks if they are 
+        members of this clan. 
+        Returns the list of chiefs that are
+        '''
+        clans = self.objects.organize_by_clan(chiefs)
+        return clans[self]
 
 
 class Chief(models.Model):
     name = models.CharField(max_length=32)
     level = models.IntegerField(choices=((x, x) for x in range(3, 11)))
-    clan = models.ForeignKey(Clan, null=True)
+    clan = models.ForeignKey(Clan, null=True, related_name='member')
 
     def get_absolute_url(self):
         return reverse('chief_detail', kwargs={'pk': self.pk})
@@ -88,7 +103,7 @@ class Chief(models.Model):
             raise ValueError("Must be in clan and leader to disband clan")
         if self.clan.leader is not self:
             raise ValueError("Must be leader of clan to disband it")
-        members = self.clan.get_roster()
+        members = self.clan.chief_set().all()
         for member in members:
             member.clan = None
             member.save()
@@ -97,13 +112,9 @@ class Chief(models.Model):
         self.save()
 
     def join_clan(self, clan):
-        if clan is None:
-            raise ValueError("Clan cannot be none")
         self.clan = clan
 
     def leave_clan(self):
-        if self.clan is None:
-            raise ValueError("Cannot leave clan when not in a clan")
         self.clan = None
 
     def __str__(self):
