@@ -68,6 +68,18 @@ class ChiefTestCase(TestCase):
             self.loner.disband_clan()
 
 
+class ClanManagerTestCase(TestCase):
+    def setUp(self):
+        clanA = mock_clan(name='A')
+        clanB = mock_clan(name='B')
+        clanC = mock_clan(name='C')
+    def test_organize_by_clan(TestCase):
+        clanA = mock_clan(name='A')
+        clanB = mock_clan(name='B')
+        clanC = mock_clan(name='C')
+
+
+
 class ClanTestCase(TestCase):
     def setUp(self):
         self.leader = Chief.objects.create(name='Chief Leader', level=10)
@@ -82,6 +94,9 @@ class ClanTestCase(TestCase):
             Chief(name='Chief 4', level=6, clan=self.clan),
             Chief(name='Chief 5', level=6, clan=self.clan),
         ])
+
+    # def test_validate_members_with_valid_set_of_members_returns_None(self):
+
 
     def test_getRoster_returns_complete_clan_roster(self):
         roster = self.clan.get_roster()
