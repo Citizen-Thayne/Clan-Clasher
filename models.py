@@ -8,9 +8,24 @@ from django.utils import timezone
 
 
 class ClanManager(models.Manager):
-    def create_clan(self, name, leader=None, members=None):
-        if name is None:
-            raise ValueError
+    @staticmethod
+    def organize_by_clan(chiefs):
+        '''
+        Returns a dictionary where key is a clan and value is list of 
+        chiefs that are in chiefs arg and that clan
+        '''
+        clans = {}
+        for chief in chiefs:
+            clans.setdefault(chief.clan, []).append(chief)
+        return clans
+
+
+class Clan(models.Model):
+    name = models.CharField(max_length=32)
+    leader = models.ForeignKey('Chief', related_name='leader', null=True)
+
+    @staticmethod
+    def create_clan(name, leader=None, members=None):
         if leader is None and members is not None:
             raise Exception('Cannot create a clan with members but no leader.')
         clan = Clan(name=name, leader=leader)
@@ -24,33 +39,21 @@ class ClanManager(models.Manager):
                 member.save()
         return clan
 
-    def organize_by_clan(chiefs):
-        '''
-        Returns a dictionary where key is a clan and value is list of 
-        chiefs that are in chiefs arg and that clan
-        '''
-        clans = {}
-        for chief in chiefs:
-            clans.setdefault(chief.clan,[]).append(chief)
-        return clans
-
-
-class Clan(models.Model):
-    name = models.CharField(max_length=32)
-    leader = models.ForeignKey('Chief', related_name='leader', null=True)
-
     def get_absolute_url(self):
         return reverse('clan_detail', kwargs={'pk': self.pk})
 
     def __str__(self):
         return self.name
 
-    def start_war(self, opponent_name, start_time):
+    def start_war(self, opponent_name, start_time, roster):
         if start_time < timezone.now() - timedelta(days=1):
             raise Exception("Start time must be more than a day ago")
         if self.is_in_war():
             raise Exception("Cannot start a war while currently in one")
-        opponent = Clan.objects.create_clan(name=opponent_name)
+        if len(roster) not in range(10, 55, 5):
+            raise Exception("Invalid roster size")
+
+        opponent = Clan.create_clan(name=opponent_name)
         return War.objects.create(owner=self, opponent=opponent, start_time=start_time)
 
     def is_in_war(self):
@@ -74,20 +77,25 @@ class Clan(models.Model):
         else:
             return None
 
-    def validate_members(self, chiefs):
+    def filter_members(self, chiefs):
         '''
         Takes a list of chiefs and checks if they are 
         members of this clan. 
         Returns the list of chiefs that are
         '''
-        clans = self.objects.organize_by_clan(chiefs)
+        clans = Clan.objects.organize_by_clan(chiefs)
         return clans[self]
+
+
+class ChiefManager(models.Manager):
+    pass
 
 
 class Chief(models.Model):
     name = models.CharField(max_length=32)
     level = models.IntegerField(choices=((x, x) for x in range(3, 11)))
-    clan = models.ForeignKey(Clan, null=True, related_name='member')
+    clan = models.ForeignKey(Clan, null=True)
+    objects = ChiefManager()
 
     def get_absolute_url(self):
         return reverse('chief_detail', kwargs={'pk': self.pk})
@@ -100,10 +108,10 @@ class Chief(models.Model):
 
     def disband_clan(self):
         if self.clan is None:
-            raise ValueError("Must be in clan and leader to disband clan")
+            raise Exception("Must be in clan and leader to disband clan")
         if self.clan.leader is not self:
-            raise ValueError("Must be leader of clan to disband it")
-        members = self.clan.chief_set().all()
+            raise Exception("Must be leader of clan to disband it")
+        members = self.clan.chief_set.all()
         for member in members:
             member.clan = None
             member.save()
@@ -115,6 +123,8 @@ class Chief(models.Model):
         self.clan = clan
 
     def leave_clan(self):
+        if self.clan is None:
+            raise Exception("Cannot leave a clan when not a member of one")
         self.clan = None
 
     def __str__(self):
