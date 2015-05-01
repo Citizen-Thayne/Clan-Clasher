@@ -45,7 +45,7 @@ class Clan(models.Model):
     def __str__(self):
         return self.name
 
-    def start_war(self, opponent_name, start_time, roster):
+    def start_war(self, opponent_name, start_time, roster, size):
         if start_time < timezone.now() - timedelta(days=1):
             raise Exception("Start time must be more than a day ago")
         if self.is_in_war():
@@ -54,7 +54,12 @@ class Clan(models.Model):
             raise Exception("Invalid roster size")
 
         opponent = Clan.create_clan(name=opponent_name)
-        return War.objects.create(owner=self, opponent=opponent, start_time=start_time)
+        war = War.objects.create(owner=self, opponent=opponent, start_time=start_time, size=size)
+        for i, member in enumerate(roster):
+            if member is not None:
+                WarRank.objects.create(chief=member, rank=i + 1, war=war)
+
+        return war
 
     def is_in_war(self):
         if self.get_current_war() is None:
@@ -135,18 +140,21 @@ class War(models.Model):
     owner = models.ForeignKey(Clan, related_name='owner')
     opponent = models.ForeignKey(Clan, related_name='opponent')
     start_time = models.DateTimeField()
+    size = models.SmallIntegerField(choices=[(x, x) for x in range(10, 55, 5)])
 
-
-class WarRankManager(models.Manager):
-    def get_war_roster(self, clan, war):
-        return WarRank.objects.get(chief__clan=clan, war=war)
+    def get_war_roster(self):
+        war_ranks = WarRank.objects.filter(war=self)
+        member_list = [None] * self.size
+        for war_rank in war_ranks:
+            member_list[war_rank.rank - 1] = war_rank.chief
+        return member_list
 
 
 class WarRank(models.Model):
     chief = models.ForeignKey(Chief)
     war = models.ForeignKey(War)
     rank = models.SmallIntegerField()
-    objects = WarRankManager()
+    # objects = WarRankManager()
 
 
 class WarAttack(models.Model):

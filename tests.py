@@ -172,7 +172,8 @@ class WarTestCase(TestCase):
             self.current_war = self.attack_clan.start_war(
                 'Defending Clan',
                 timezone.now(),
-                roster=war_roster
+                roster=war_roster,
+                size=1
             )
         self.assertIsNone(self.attack_clan.get_current_war())
 
@@ -186,7 +187,8 @@ class WarTestCase(TestCase):
         war = self.attack_clan.start_war(
             opponent_name=opponent_name,
             start_time=start_time,
-            roster=war_roster
+            roster=war_roster,
+            size=10
         )
         self.assertEqual(war.opponent.name, 'Opponent')
         self.assertEqual(war.start_time, start_time)
@@ -194,19 +196,32 @@ class WarTestCase(TestCase):
 
     def test_current_war_returns_war_when_there_is_a_current_war(self):
         self.current_war = self.attack_clan.start_war('Defending Clan', timezone.now(),
-                                                      roster=self.attack_members[0:10])
+                                                      roster=self.attack_members[0:10],
+                                                      size=10)
         self.assertEqual(self.current_war, self.attack_clan.get_current_war())
 
     def test_current_war_returns_None_when_there_is_no_current_war(self):
         peaceful_clan = Clan.objects.create(name="Peaceful")
         self.assertIsNone(peaceful_clan.get_current_war())
 
-
-class WarRankTestCase(TestCase):
-    def setUp(self):
-        self.attack_clan = mock_clan(10)
-        self.war = self.attack_clan.start_war(
-            opponent_name='Opponent',
+    def test_get_war_roster_returns_current_war_roster_in_order(self):
+        attack_members = self.attack_clan.chief_set.all()
+        war_roster = [
+            attack_members[9],
+            attack_members[8],
+            attack_members[1],
+            attack_members[3],
+            attack_members[7],
+            None,
+            attack_members[6],
+            attack_members[2],
+            attack_members[4],
+            attack_members[0],
+        ]
+        war = self.attack_clan.start_war(
+            opponent_name="Opponent",
             start_time=timezone.now(),
-
+            roster=war_roster,
+            size=10
         )
+        self.assertEqual(war_roster, war.get_war_roster())
